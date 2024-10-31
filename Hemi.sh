@@ -79,6 +79,13 @@ EOF
     exit 0
 }
 
+function restart_node {
+    echo "Restarting node..."
+    sudo systemctl daemon-reload
+    sudo systemctl restart hemid
+    echo "Node restarted."
+}
+
 function change_port {
     read -p "Enter new port number: " NEW_PORT
     sudo sed -i "s/Environment="POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network\/v1\/ws\/public"/Environment="POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network:\$NEW_PORT\/v1\/ws\/public"/g" /etc/systemd/system/hemid.service
@@ -135,11 +142,14 @@ function remove_node {
 }
 
 PS3="Выберите действие: "
-options=("Установка ноды" "Изменение порта" "Просмотр логов" "Удаление ноды" "Импортировать кошелек" "Выход")
+options=("Установка ноды" "Рестарт ноды" "Изменение порта" "Просмотр логов" "Удаление ноды" "Импортировать кошелек" "Выход")
 select opt in "${options[@]}"; do
     case $opt in
         "Установка ноды")
             install_node
+            ;;
+        "Рестарт ноды")
+            restart_node
             ;;
         "Изменение порта")
             change_port
