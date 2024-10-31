@@ -1,5 +1,22 @@
 #!/bin/bash
 
+echo -e "\e[32m"
+cat << "EOF"
+███████  ██████  ██████      ██   ██ ███████ ███████ ██████      ██ ████████     ████████ ██████   █████  ██████  ██ ███    ██  ██████  
+██      ██    ██ ██   ██     ██  ██  ██      ██      ██   ██     ██    ██           ██    ██   ██ ██   ██ ██   ██ ██ ████   ██ ██       
+█████   ██    ██ ██████      █████   █████   █████   ██████      ██    ██           ██    ██████  ███████ ██   ██ ██ ██ ██  ██ ██   ███ 
+██      ██    ██ ██   ██     ██  ██  ██      ██      ██          ██    ██           ██    ██   ██ ██   ██ ██   ██ ██ ██  ██ ██ ██    ██ 
+██       ██████  ██   ██     ██   ██ ███████ ███████ ██          ██    ██           ██    ██   ██ ██   ██ ██████  ██ ██   ████  ██████  
+                                                                                                                                        
+                                                                                                                                        
+ ██  ██████ ██       █████  ███    ██ ██████   █████  ███    ██ ████████ ███████                                                        
+██  ██       ██     ██   ██ ████   ██ ██   ██ ██   ██ ████   ██    ██    ██                                                             
+██  ██       ██     ███████ ██ ██  ██ ██   ██ ███████ ██ ██  ██    ██    █████                                                          
+██  ██       ██     ██   ██ ██  ██ ██ ██   ██ ██   ██ ██  ██ ██    ██    ██                                                             
+ ██  ██████ ██      ██   ██ ██   ████ ██████  ██   ██ ██   ████    ██    ███████    
+EOF
+echo -e "\e[0m"
+
 function install_node {
     echo "Updating and upgrading system packages..."
     sudo apt-get update -y && sudo apt upgrade -y
@@ -55,6 +72,7 @@ EOF
     sudo systemctl daemon-reload
     sudo systemctl start hemid
     echo "Node installation complete."
+    exit 0
 }
 
 function change_port {
@@ -76,24 +94,24 @@ function remove_node {
     echo "Node removed successfully."
 }
 
-PS3="Please select an option: "
-options=("Install Node" "Change Port" "Remove Node" "Exit")
+PS3="Выберите действие: "
+options=("Установка ноды" "Изменение порта" "Удаление ноды" "Выход")
 select opt in "${options[@]}"; do
     case $opt in
-        "Install Node")
+        "Установка ноды")
             install_node
             ;;
-        "Change Port")
+        "Изменение порта")
             change_port
             ;;
-        "Remove Node")
+        "Удаление ноды")
             remove_node
             ;;
-        "Exit")
+        "Выход")
             break
             ;;
         *)
-            echo "Invalid option $REPLY"
+            echo "Неверный вариант $REPLY"
             ;;
     esac
 done
