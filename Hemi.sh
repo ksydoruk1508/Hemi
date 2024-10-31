@@ -95,6 +95,16 @@ function change_port {
     echo "Port changed to $NEW_PORT."
 }
 
+function change_fee {
+    read -p "Enter new static fee: " NEW_FEE
+    sudo sed -i "s/Environment="POPM_STATIC_FEE=[0-9]*"/Environment="POPM_STATIC_FEE=$NEW_FEE"/g" /etc/systemd/system/hemid.service
+    echo "export POPM_STATIC_FEE=$NEW_FEE" >> ~/.bashrc
+    source ~/.bashrc
+    sudo systemctl daemon-reload
+    sudo systemctl restart hemid
+    echo "Static fee changed to $NEW_FEE. Node restarted."
+}
+
 function import_wallet {
     read -p "Enter your private key to import: " PRIVATE_KEY
     export POPM_PRIVATE_KEY=$PRIVATE_KEY
@@ -147,6 +157,7 @@ options=(
     "Установка ноды"
     "Рестарт ноды"
     "Изменение порта"
+    "Изменение комиссии"
     "Просмотр логов"
     "Удаление ноды"
     "Импортировать кошелек"
@@ -162,6 +173,9 @@ select opt in "${options[@]}"; do
             ;;
         "Изменение порта")
             change_port
+            ;;
+        "Изменение комиссии")
+            change_fee
             ;;
         "Просмотр логов")
             view_logs
