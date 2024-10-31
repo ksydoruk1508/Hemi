@@ -13,7 +13,7 @@ cat << "EOF"
 ██  ██       ██     ██   ██ ████   ██ ██   ██ ██   ██ ████   ██    ██    ██                                                             
 ██  ██       ██     ███████ ██ ██  ██ ██   ██ ███████ ██ ██  ██    ██    █████                                                          
 ██  ██       ██     ██   ██ ██  ██ ██ ██   ██ ██   ██ ██  ██ ██    ██    ██                                                             
- ██  ██████ ██      ██   ██ ██   ████ ██████  ██   ██ ██   ████    ██    ███████    
+ ██  ██████ ██      ██   ██ ██   ████ ██████  ██   ██ ██   ████    ██    ███████
 
 
 Donate: 0x0004230c13c3890F34Bb9C9683b91f539E809000
@@ -87,6 +87,38 @@ function change_port {
     echo "Port changed to $NEW_PORT."
 }
 
+function import_wallet {
+    read -p "Enter your private key to import: " PRIVATE_KEY
+    export POPM_PRIVATE_KEY=$PRIVATE_KEY
+    echo "export POPM_PRIVATE_KEY=$PRIVATE_KEY" >> ~/.bashrc
+    echo "Creating service file for imported wallet..."
+    sudo tee /etc/systemd/system/hemid.service > /dev/null <<EOF
+[Unit]
+Description=Hemi
+After=network.target
+
+[Service]
+User=$USER
+Environment="POPM_BTC_PRIVKEY=$PRIVATE_KEY"
+Environment="POPM_STATIC_FEE=5000"
+Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
+WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
+ExecStart=/root/heminetwork_v0.5.0_linux_amd64/popmd
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    echo "Starting service..."
+    sudo systemctl enable hemid
+    sudo systemctl daemon-reload
+    sudo systemctl start hemid
+    echo "Wallet imported and node started."
+}
+
 function view_logs {
     echo "Viewing logs..."
     sudo journalctl -u hemid -f --no-hostname -o cat
@@ -104,7 +136,7 @@ function remove_node {
 }
 
 PS3="Выберите действие: "
-options=("Установка ноды" "Изменение порта" "Просмотр логов" "Удаление ноды" "Выход")
+options=("Установка ноды" "Изменение порта" "Просмотр логов" "Удаление ноды" "Импортировать кошелек" "Выход")
 select opt in "${options[@]}"; do
     case $opt in
         "Установка ноды")
@@ -118,6 +150,9 @@ select opt in "${options[@]}"; do
             ;;
         "Удаление ноды")
             remove_node
+            ;;
+        "Импортировать кошелек")
+            import_wallet
             ;;
         "Выход")
             break
