@@ -41,6 +41,7 @@ function install_node {
     echo "Save the above file and its data - this is your wallet!"
 
     read -p "Enter your private key: " PRIVATE_KEY
+    export POPM_PRIVATE_KEY=$PRIVATE_KEY
     echo "export POPM_PRIVATE_KEY=$PRIVATE_KEY" >> ~/.bashrc
     echo "export POPM_STATIC_FEE=5000" >> ~/.bashrc
     echo "export POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public" >> ~/.bashrc
@@ -54,7 +55,7 @@ After=network.target
 
 [Service]
 User=$USER
-Environment="POPM_BTC_PRIVKEY=$POPM_PRIVATE_KEY"
+Environment="POPM_BTC_PRIVKEY=$PRIVATE_KEY"
 Environment="POPM_STATIC_FEE=5000"
 Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
 WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
