@@ -78,10 +78,15 @@ EOF
 
 function change_port {
     read -p "Enter new port number: " NEW_PORT
-    sudo sed -i "s/Environment=\"POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network\/v1\/ws\/public\"/Environment=\"POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network:\$NEW_PORT\/v1\/ws\/public\"/g" /etc/systemd/system/hemid.service
+    sudo sed -i "s/Environment="POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network\/v1\/ws\/public"/Environment="POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network:\$NEW_PORT\/v1\/ws\/public"/g" /etc/systemd/system/hemid.service
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
     echo "Port changed to $NEW_PORT."
+}
+
+function view_logs {
+    echo "Viewing logs..."
+    sudo journalctl -u hemid -f --no-hostname -o cat
 }
 
 function remove_node {
@@ -96,7 +101,7 @@ function remove_node {
 }
 
 PS3="Выберите действие: "
-options=("Установка ноды" "Изменение порта" "Удаление ноды" "Выход")
+options=("Установка ноды" "Изменение порта" "Просмотр логов" "Удаление ноды" "Выход")
 select opt in "${options[@]}"; do
     case $opt in
         "Установка ноды")
@@ -104,6 +109,9 @@ select opt in "${options[@]}"; do
             ;;
         "Изменение порта")
             change_port
+            ;;
+        "Просмотр логов")
+            view_logs
             ;;
         "Удаление ноды")
             remove_node
