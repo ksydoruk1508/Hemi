@@ -112,11 +112,10 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 EOF
 
-    echo "Starting service..."
-    sudo systemctl enable hemid
+    echo "Reloading and restarting service with new wallet..."
     sudo systemctl daemon-reload
-    sudo systemctl start hemid
-    echo "Wallet imported and node started."
+    sudo systemctl restart hemid
+    echo "Wallet imported and node restarted."
 }
 
 function view_logs {
