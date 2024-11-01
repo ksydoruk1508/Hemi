@@ -60,7 +60,7 @@ After=network.target
 [Service]
 User=$USER
 Environment="POPM_BTC_PRIVKEY=$PRIVATE_KEY"
-Environment="POPM_STATIC_FEE=5000"
+Environment="POPM_STATIC_FEE=$POPM_STATIC_FEE"
 Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
 WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
 ExecStart=/root/heminetwork_v0.5.0_linux_amd64/popmd
@@ -98,7 +98,7 @@ function change_port {
 function change_fee {
     read -p "Enter new static fee: " NEW_FEE
     sudo sed -i "s/Environment="POPM_STATIC_FEE=[0-9]*"/Environment="POPM_STATIC_FEE=$NEW_FEE"/g" /etc/systemd/system/hemid.service
-    echo "export POPM_STATIC_FEE=$NEW_FEE" >> ~/.bashrc
+    sed -i "s/export POPM_STATIC_FEE=[0-9]*/export POPM_STATIC_FEE=$NEW_FEE/g" ~/.bashrc
     source ~/.bashrc
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
@@ -118,7 +118,7 @@ After=network.target
 [Service]
 User=$USER
 Environment="POPM_BTC_PRIVKEY=$PRIVATE_KEY"
-Environment="POPM_STATIC_FEE=5000"
+Environment="POPM_STATIC_FEE=$POPM_STATIC_FEE"
 Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
 WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
 ExecStart=/root/heminetwork_v0.5.0_linux_amd64/popmd
