@@ -67,7 +67,7 @@ function install_node {
 
     # Экспортируем приватный ключ в системные переменные
     echo "POPM_BTC_PRIVKEY=$PRIVATE_KEY" | sudo tee -a /etc/environment
-    echo 'POPM_STATIC_FEE=5000' | sudo tee -a /etc/environment
+    echo 'POPM_STATIC_FEE=1500' | sudo tee -a /etc/environment
     echo 'POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public' | sudo tee -a /etc/environment
     source /etc/environment
 
