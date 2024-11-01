@@ -157,7 +157,7 @@ function remove_node {
     echo "Node removed successfully."
 }
 
-PS3="\e[33mВыберите действие: \e[0m"
+PS3="Выберите действие: "
 options=(
     "Установка ноды"
     "Рестарт ноды"
@@ -168,7 +168,9 @@ options=(
     "Импортировать кошелек"
     "Выход"
 )
+echo -e "\033[36m"
 select opt in "${options[@]}"; do
+echo -e "\033[0m"
     case $opt in
         "Установка ноды")
             install_node
