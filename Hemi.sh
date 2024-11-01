@@ -168,9 +168,7 @@ options=(
     "Импортировать кошелек"
     "Выход"
 )
-echo -e "\033[36m"
 select opt in "${options[@]}"; do
-echo -e "\033[0m"
     case $opt in
         "Установка ноды")
             install_node
