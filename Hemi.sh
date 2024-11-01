@@ -56,11 +56,13 @@ function install_node {
     PRIVATE_KEY=$(jq -r '.private_key' /root/heminetwork_v0.5.0_linux_amd64/popm-address.json)
 
     # Спрашиваем пользователя, хочет ли он использовать сгенерированный ключ или ввести свой
-    read -p "${YELLOW}Хотите использовать сгенерированный приватный ключ? (y/n): ${NC}" use_generated_key
+    echo -e "${YELLOW}Хотите использовать сгенерированный приватный ключ? (y/n): ${NC}"
+    read use_generated_key
     if [[ "$use_generated_key" == "y" ]]; then
         echo -e "${GREEN}Используем сгенерированный приватный ключ...${NC}"
     else
-        read -p "${YELLOW}Введите ваш приватный ключ: ${NC}" PRIVATE_KEY
+        echo -e "${YELLOW}Введите ваш приватный ключ: ${NC}"
+        read PRIVATE_KEY
     fi
 
     # Экспортируем приватный ключ в системные переменные
