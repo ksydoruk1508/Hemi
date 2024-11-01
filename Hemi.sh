@@ -48,9 +48,9 @@ function install_node {
     fi
 
     # Экспортируем приватный ключ в системные переменные
-    echo "export POPM_PRIVATE_KEY=$PRIVATE_KEY" >> /etc/environment
-    echo 'export POPM_STATIC_FEE=5000' >> /etc/environment
-    echo 'export POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public' >> /etc/environment
+    echo "POPM_PRIVATE_KEY=$PRIVATE_KEY" | sudo tee -a /etc/environment
+    echo 'POPM_STATIC_FEE=5000' | sudo tee -a /etc/environment
+    echo 'POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public' | sudo tee -a /etc/environment
     source /etc/environment
 
     # Проверяем, что переменная установлена
@@ -122,7 +122,7 @@ function remove_node {
 
 function import_wallet {
     read -p "Введите приватный ключ: " private_key
-    echo "export POPM_PRIVATE_KEY=$private_key" >> /etc/environment
+    echo "POPM_PRIVATE_KEY=$private_key" | sudo tee -a /etc/environment
     source /etc/environment
     echo "Кошелек успешно импортирован."
 }
