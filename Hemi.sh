@@ -157,7 +157,7 @@ function remove_node {
     echo "Node removed successfully."
 }
 
-PS3="\e[33mВыберите действие: \e[0m"
+PS3="Выберите действие: "
 options=(
     "Установка ноды"
     "Рестарт ноды"
