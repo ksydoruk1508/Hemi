@@ -46,8 +46,9 @@ function install_node {
 
     read -p "Enter your private key: " PRIVATE_KEY
     export POPM_PRIVATE_KEY=$PRIVATE_KEY
+    export POPM_STATIC_FEE=5000
     echo "export POPM_PRIVATE_KEY=$PRIVATE_KEY" >> ~/.bashrc
-    echo "export POPM_STATIC_FEE=5000" >> ~/.bashrc
+    echo "export POPM_STATIC_FEE=$POPM_STATIC_FEE" >> ~/.bashrc
     echo "export POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public" >> ~/.bashrc
     source ~/.bashrc
 
