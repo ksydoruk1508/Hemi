@@ -16,7 +16,7 @@ if ! command -v curl &> /dev/null; then
 fi
 sleep 1
 
-echo -e "\e[32m"
+echo -e "${GREEN}"
 cat << "EOF"
 ███████  ██████  ██████      ██   ██ ███████ ███████ ██████      ██ ████████     ████████ ██████   █████  ██████  ██ ███    ██  ██████  
 ██      ██    ██ ██   ██     ██  ██  ██      ██      ██   ██     ██    ██           ██    ██   ██ ██   ██ ██   ██ ██ ████   ██ ██       
@@ -33,7 +33,7 @@ cat << "EOF"
 
 Donate: 0x0004230c13c3890F34Bb9C9683b91f539E809000
 EOF
-echo -e "\e[0m"
+echo -e "${NC}"
 
 function install_node {
     echo -e "${BLUE}Обновляем сервер...${NC}"
