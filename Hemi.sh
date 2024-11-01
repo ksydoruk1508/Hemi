@@ -61,7 +61,7 @@ After=network.target
 User=$USER
 Environment="POPM_BTC_PRIVKEY=$PRIVATE_KEY"
 Environment="POPM_STATIC_FEE=$POPM_STATIC_FEE"
-Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
+Environment="POPM_BFG_URL=$POPM_BFG_URL"
 WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
 ExecStart=/root/heminetwork_v0.5.0_linux_amd64/popmd
 Restart=on-failure
@@ -89,7 +89,10 @@ function restart_node {
 
 function change_port {
     read -p "Enter new port number: " NEW_PORT
-    sudo sed -i "s/Environment="POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network\/v1\/ws\/public"/Environment="POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network:\$NEW_PORT\/v1\/ws\/public"/g" /etc/systemd/system/hemid.service
+    export POPM_BFG_URL="wss://testnet.rpc.hemi.network:$NEW_PORT/v1/ws/public"
+    sudo sed -i "s|Environment=\"POPM_BFG_URL=.*\"|Environment=\"POPM_BFG_URL=$POPM_BFG_URL\"|g" /etc/systemd/system/hemid.service
+    echo "export POPM_BFG_URL=$POPM_BFG_URL" >> ~/.bashrc
+    source ~/.bashrc
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
     echo "Port changed to $NEW_PORT."
@@ -97,8 +100,9 @@ function change_port {
 
 function change_fee {
     read -p "Enter new static fee: " NEW_FEE
-    sudo sed -i "s/Environment="POPM_STATIC_FEE=[0-9]*"/Environment="POPM_STATIC_FEE=$NEW_FEE"/g" /etc/systemd/system/hemid.service
-    sed -i "s/export POPM_STATIC_FEE=[0-9]*/export POPM_STATIC_FEE=$NEW_FEE/g" ~/.bashrc
+    export POPM_STATIC_FEE=$NEW_FEE
+    sudo sed -i "s|Environment=\"POPM_STATIC_FEE=.*\"|Environment=\"POPM_STATIC_FEE=$POPM_STATIC_FEE\"|g" /etc/systemd/system/hemid.service
+    sed -i "s|export POPM_STATIC_FEE=.*|export POPM_STATIC_FEE=$POPM_STATIC_FEE|g" ~/.bashrc
     source ~/.bashrc
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
@@ -119,7 +123,7 @@ After=network.target
 User=$USER
 Environment="POPM_BTC_PRIVKEY=$PRIVATE_KEY"
 Environment="POPM_STATIC_FEE=$POPM_STATIC_FEE"
-Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
+Environment="POPM_BFG_URL=$POPM_BFG_URL"
 WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
 ExecStart=/root/heminetwork_v0.5.0_linux_amd64/popmd
 Restart=on-failure
