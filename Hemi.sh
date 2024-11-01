@@ -145,6 +145,8 @@ function import_wallet {
     read private_key
     echo "POPM_BTC_PRIVKEY=$private_key" | sudo tee -a /etc/environment
     source /etc/environment
+    sudo systemctl daemon-reload
+    sudo systemctl restart hemid
     echo -e "${GREEN}Кошелек успешно импортирован.${NC}"
 }
 
