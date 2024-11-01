@@ -48,13 +48,13 @@ function install_node {
     fi
 
     # Экспортируем приватный ключ в системные переменные
-    echo "POPM_PRIVATE_KEY=$PRIVATE_KEY" | sudo tee -a /etc/environment
+    echo "POPM_BTC_PRIVKEY=$PRIVATE_KEY" | sudo tee -a /etc/environment
     echo 'POPM_STATIC_FEE=5000' | sudo tee -a /etc/environment
     echo 'POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public' | sudo tee -a /etc/environment
     source /etc/environment
 
     # Проверяем, что переменная установлена
-    if [[ -z "$POPM_PRIVATE_KEY" ]]; then
+    if [[ -z "$POPM_BTC_PRIVKEY" ]]; then
         echo "Ошибка: приватный ключ не был установлен. Проверьте настройки."
         exit 1
     fi
@@ -122,7 +122,7 @@ function remove_node {
 
 function import_wallet {
     read -p "Введите приватный ключ: " private_key
-    echo "POPM_PRIVATE_KEY=$private_key" | sudo tee -a /etc/environment
+    echo "POPM_BTC_PRIVKEY=$private_key" | sudo tee -a /etc/environment
     source /etc/environment
     echo "Кошелек успешно импортирован."
 }
