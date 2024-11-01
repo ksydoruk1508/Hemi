@@ -8,7 +8,7 @@ cat << "EOF"
 ██      ██    ██ ██   ██     ██  ██  ██      ██      ██          ██    ██           ██    ██   ██ ██   ██ ██   ██ ██ ██  ██ ██ ██    ██ 
 ██       ██████  ██   ██     ██   ██ ███████ ███████ ██          ██    ██           ██    ██   ██ ██   ██ ██████  ██ ██   ████  ██████  
                                                                                                                                         
-                                                                                                                                        
+                                                                                                                                       
  ██  ██████  ██       █████  ███    ██ ██████   █████  ███    ██ ████████ ███████                                                         
 ██  ██        ██     ██   ██ ████   ██ ██   ██ ██   ██ ████   ██    ██    ██                                                             
 ██  ██        ██     ███████ ██ ██  ██ ██   ██ ███████ ██ ██  ██    ██    █████                                                          
@@ -53,6 +53,12 @@ function install_node {
     echo 'export POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public' >> ~/.bashrc
     source ~/.bashrc
 
+    # Проверяем, что переменная установлена
+    if [[ -z "$POPM_PRIVATE_KEY" ]]; then
+        echo "Ошибка: приватный ключ не был установлен. Проверьте настройки."
+        exit 1
+    fi
+
     echo "Создаем сервисный файл..."
     sudo tee /etc/systemd/system/hemid.service > /dev/null <<EOF
 [Unit]
@@ -61,9 +67,7 @@ After=network.target
 
 [Service]
 User=$USER
-Environment="POPM_BTC_PRIVKEY=$POPM_PRIVATE_KEY"
-Environment="POPM_STATIC_FEE=5000"
-Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
+EnvironmentFile=/root/.bashrc
 WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
 ExecStart=/root/heminetwork_v0.5.0_linux_amd64/popmd
 Restart=on-failure
