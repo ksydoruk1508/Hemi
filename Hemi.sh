@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# Цвета текста
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # Нет цвета (сброс цвета)
+
+# Проверка наличия curl и установка, если не установлен
+if ! command -v curl &> /dev/null; then
+    sudo apt update
+    sudo apt install curl -y
+fi
+sleep 1
+
 echo -e "\e[32m"
 cat << "EOF"
 ███████  ██████  ██████      ██   ██ ███████ ███████ ██████      ██ ████████     ████████ ██████   █████  ██████  ██ ███    ██  ██████  
@@ -20,19 +36,19 @@ EOF
 echo -e "\e[0m"
 
 function install_node {
-    echo "Обновляем сервер..."
+    echo -e "${BLUE}Обновляем сервер...${NC}"
     sudo apt-get update -y && sudo apt upgrade -y && sudo apt-get install make screen build-essential unzip lz4 gcc git jq -y
     sudo rm -rf /usr/local/go
-    echo "Устанавливаем Go..."
+    echo -e "${BLUE}Устанавливаем Go...${NC}"
     curl -Ls https://go.dev/dl/go1.22.4.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local
     eval $(echo 'export PATH=$PATH:/usr/local/go/bin' | sudo tee /etc/profile.d/golang.sh)
     eval $(echo 'export PATH=$PATH:$HOME/go/bin' | tee -a $HOME/.profile)
-    echo "Скачиваем репозиторий проекта..."
+    echo -e "${BLUE}Скачиваем репозиторий проекта...${NC}"
     wget https://github.com/hemilabs/heminetwork/releases/download/v0.5.0/heminetwork_v0.5.0_linux_amd64.tar.gz
     tar -xvf heminetwork_v0.5.0_linux_amd64.tar.gz
     rm -rf heminetwork_v0.5.0_linux_amd64.tar.gz
     cd heminetwork_v0.5.0_linux_amd64/
-    echo "Создаем кошелек..."
+    echo -e "${BLUE}Создаем кошелек...${NC}"
     ./keygen -secp256k1 -json -net="testnet" > /root/heminetwork_v0.5.0_linux_amd64/popm-address.json
     cat /root/heminetwork_v0.5.0_linux_amd64/popm-address.json
     
@@ -40,11 +56,11 @@ function install_node {
     PRIVATE_KEY=$(jq -r '.private_key' /root/heminetwork_v0.5.0_linux_amd64/popm-address.json)
 
     # Спрашиваем пользователя, хочет ли он использовать сгенерированный ключ или ввести свой
-    read -p "Хотите использовать сгенерированный приватный ключ? (y/n): " use_generated_key
+    read -p "${YELLOW}Хотите использовать сгенерированный приватный ключ? (y/n): ${NC}" use_generated_key
     if [[ "$use_generated_key" == "y" ]]; then
-        echo "Используем сгенерированный приватный ключ..."
+        echo -e "${GREEN}Используем сгенерированный приватный ключ...${NC}"
     else
-        read -p "Введите ваш приватный ключ: " PRIVATE_KEY
+        read -p "${YELLOW}Введите ваш приватный ключ: ${NC}" PRIVATE_KEY
     fi
 
     # Экспортируем приватный ключ в системные переменные
@@ -55,11 +71,11 @@ function install_node {
 
     # Проверяем, что переменная установлена
     if [[ -z "$POPM_BTC_PRIVKEY" ]]; then
-        echo "Ошибка: приватный ключ не был установлен. Проверьте настройки."
+        echo -e "${RED}Ошибка: приватный ключ не был установлен. Проверьте настройки.${NC}"
         exit 1
     fi
 
-    echo "Создаем сервисный файл..."
+    echo -e "${BLUE}Создаем сервисный файл...${NC}"
     sudo tee /etc/systemd/system/hemid.service > /dev/null <<EOF
 [Unit]
 Description=Hemi
@@ -78,67 +94,68 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 EOF
 
-    echo "Запускаем сервис..."
+    echo -e "${BLUE}Запускаем сервис...${NC}"
     sudo systemctl enable hemid
     sudo systemctl daemon-reload
     sudo systemctl start hemid
-    echo "Нода успешно установлена и запущена!"
+    echo -e "${GREEN}Нода успешно установлена и запущена!${NC}"
 }
 
 function restart_node {
-    echo "Перезапускаем ноду..."
+    echo -e "${BLUE}Перезапускаем ноду...${NC}"
     sudo systemctl restart hemid
 }
 
 function change_port {
-    read -p "Введите новый порт: " port
+    read -p "${YELLOW}Введите новый порт: ${NC}" port
     sudo sed -i "s/Environment=\"POPM_BFG_URL=wss:\/\/.*\/v1\/ws\/public\"/Environment=\"POPM_BFG_URL=wss:\/\/$port\/v1\/ws\/public\"/" /etc/systemd/system/hemid.service
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
-    echo "Порт изменен и нода перезапущена."
+    echo -e "${GREEN}Порт изменен и нода перезапущена.${NC}"
 }
 
 function change_fee {
-    read -p "Введите новую комиссию: " fee
+    read -p "${YELLOW}Введите новую комиссию: ${NC}" fee
     sudo sed -i "s/Environment=\"POPM_STATIC_FEE=.*\"/Environment=\"POPM_STATIC_FEE=$fee\"/" /etc/systemd/system/hemid.service
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
-    echo "Комиссия изменена и нода перезапущена."
+    echo -e "${GREEN}Комиссия изменена и нода перезапущена.${NC}"
 }
 
 function view_logs {
+    echo -e "${YELLOW}Проверка логов (выход из логов CTRL+C)...${NC}"
     sudo journalctl -u hemid -f
 }
 
 function remove_node {
-    echo "Удаляем ноду..."
+    echo -e "${BLUE}Удаляем ноду...${NC}"
     sudo systemctl stop hemid
     sudo systemctl disable hemid
     sudo rm -rf /etc/systemd/system/hemid.service
     sudo rm -rf /root/heminetwork_v0.5.0_linux_amd64
     sudo systemctl daemon-reload
-    echo "Нода успешно удалена."
+    echo -e "${GREEN}Нода успешно удалена.${NC}"
 }
 
 function import_wallet {
-    read -p "Введите приватный ключ: " private_key
+    read -p "${YELLOW}Введите приватный ключ: ${NC}" private_key
     echo "POPM_BTC_PRIVKEY=$private_key" | sudo tee -a /etc/environment
     source /etc/environment
-    echo "Кошелек успешно импортирован."
+    echo -e "${GREEN}Кошелек успешно импортирован.${NC}"
 }
 
 function main_menu {
     while true; do
-        echo "Выберите действие:"
-        echo "1. Установка ноды"
-        echo "2. Рестарт ноды"
-        echo "3. Изменить порт"
-        echo "4. Изменить комиссию"
-        echo "5. Просмотр логов"
-        echo "6. Удаление ноды"
-        echo "7. Импортировать кошелек"
-        echo "8. Выход"
-        read -p "Введите номер: " choice
+        echo -e "${YELLOW}Выберите действие:${NC}"
+        echo -e "${CYAN}1. Установка ноды${NC}"
+        echo -e "${CYAN}2. Рестарт ноды${NC}"
+        echo -e "${CYAN}3. Изменить порт${NC}"
+        echo -e "${CYAN}4. Изменить комиссию${NC}"
+        echo -e "${CYAN}5. Просмотр логов${NC}"
+        echo -e "${CYAN}6. Удаление ноды${NC}"
+        echo -e "${CYAN}7. Импортировать кошелек${NC}"
+        echo -e "${CYAN}8. Выход${NC}"
+        read -p "${YELLOW}Введите номер: ${NC}" choice
         case $choice in
             1) install_node ;;
             2) restart_node ;;
@@ -148,7 +165,7 @@ function main_menu {
             6) remove_node ;;
             7) import_wallet ;;
             8) break ;;
-            *) echo "Неверный выбор, попробуйте снова." ;;
+            *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
         esac
     done
 }
