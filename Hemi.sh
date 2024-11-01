@@ -119,7 +119,8 @@ function change_port {
 function change_fee {
     echo -e "${YELLOW}Введите новую комиссию: ${NC}"
     read fee
-    sudo sed -i "s/Environment=\"POPM_STATIC_FEE=.*\"/Environment=\"POPM_STATIC_FEE=$fee\"/" /etc/systemd/system/hemid.service
+    sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" /etc/environment
+    source /etc/environment
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
     echo -e "${GREEN}Комиссия изменена и нода перезапущена.${NC}"
@@ -147,7 +148,7 @@ function import_wallet {
     source /etc/environment
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
-    echo -e "${GREEN}Кошелек успешно импортирован.${NC}"
+    echo -e "${GREEN}Кошелек успешно импортирован и нода перезапущена.${NC}"
 }
 
 function main_menu {
