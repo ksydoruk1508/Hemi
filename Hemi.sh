@@ -33,12 +33,26 @@ function install_node {
     rm -rf heminetwork_v0.5.0_linux_amd64.tar.gz
     cd heminetwork_v0.5.0_linux_amd64/
     echo "Создаем кошелек..."
-    ./keygen -secp256k1 -json -net="testnet" > /root//heminetwork_v0.5.0_linux_amd64/popm-address.json
-    cat popm-address.json
-    echo 'export POPM_PRIVATE_KEY=<YOUR_PRIVATE_KEY>' >> ~/.bashrc
+    ./keygen -secp256k1 -json -net="testnet" > /root/heminetwork_v0.5.0_linux_amd64/popm-address.json
+    cat /root/heminetwork_v0.5.0_linux_amd64/popm-address.json
+    
+    # Извлекаем приватный ключ из созданного кошелька
+    PRIVATE_KEY=$(jq -r '.private_key' /root/heminetwork_v0.5.0_linux_amd64/popm-address.json)
+
+    # Спрашиваем пользователя, хочет ли он использовать сгенерированный ключ или ввести свой
+    read -p "Хотите использовать сгенерированный приватный ключ? (y/n): " use_generated_key
+    if [[ "$use_generated_key" == "y" ]]; then
+        echo "Используем сгенерированный приватный ключ..."
+    else
+        read -p "Введите ваш приватный ключ: " PRIVATE_KEY
+    fi
+
+    # Экспортируем приватный ключ в системные переменные
+    echo "export POPM_PRIVATE_KEY=$PRIVATE_KEY" >> ~/.bashrc
     echo 'export POPM_STATIC_FEE=5000' >> ~/.bashrc
     echo 'export POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public' >> ~/.bashrc
     source ~/.bashrc
+
     echo "Создаем сервисный файл..."
     sudo tee /etc/systemd/system/hemid.service > /dev/null <<EOF
 [Unit]
@@ -59,6 +73,7 @@ LimitNOFILE=65535
 [Install]
 WantedBy=multi-user.target
 EOF
+
     echo "Запускаем сервис..."
     sudo systemctl enable hemid
     sudo systemctl daemon-reload
