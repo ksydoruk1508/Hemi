@@ -117,7 +117,8 @@ function change_port {
 }
 
 function change_fee {
-    read -p "${YELLOW}Введите новую комиссию: ${NC}" fee
+    echo -e "${YELLOW}Введите новую комиссию: ${NC}"
+    read fee
     sudo sed -i "s/Environment=\"POPM_STATIC_FEE=.*\"/Environment=\"POPM_STATIC_FEE=$fee\"/" /etc/systemd/system/hemid.service
     sudo systemctl daemon-reload
     sudo systemctl restart hemid
@@ -140,7 +141,8 @@ function remove_node {
 }
 
 function import_wallet {
-    read -p "${YELLOW}Введите приватный ключ: ${NC}" private_key
+    echo -e "${YELLOW}Введите приватный ключ: ${NC}"
+    read private_key
     echo "POPM_BTC_PRIVKEY=$private_key" | sudo tee -a /etc/environment
     source /etc/environment
     echo -e "${GREEN}Кошелек успешно импортирован.${NC}"
