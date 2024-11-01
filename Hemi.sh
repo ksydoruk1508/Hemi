@@ -155,7 +155,9 @@ function main_menu {
         echo -e "${CYAN}6. Удаление ноды${NC}"
         echo -e "${CYAN}7. Импортировать кошелек${NC}"
         echo -e "${CYAN}8. Выход${NC}"
-        read -p "${YELLOW} Введите номер: ${NC}" choice
+       
+        echo -e "${YELLOW}Введите номер:${NC} "
+        read choice
         case $choice in
             1) install_node ;;
             2) restart_node ;;
