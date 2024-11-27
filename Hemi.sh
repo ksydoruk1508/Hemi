@@ -32,13 +32,13 @@ ________________________________________________________________________________
 █████   ██    ██ ██████      █████   █████   █████   ██████      ██    ██           ██    ██████  ███████ ██   ██ ██ ██ ██  ██ ██   ███ 
 ██      ██    ██ ██   ██     ██  ██  ██      ██      ██          ██    ██           ██    ██   ██ ██   ██ ██   ██ ██ ██  ██ ██ ██    ██ 
 ██       ██████  ██   ██     ██   ██ ███████ ███████ ██          ██    ██           ██    ██   ██ ██   ██ ██████  ██ ██   ████  ██████  
-                                                                                                                                        
                                                                                                                                        
+                                                                                                                                      
  ██  ██████  ██       █████  ███    ██ ██████   █████  ███    ██ ████████ ███████                                                         
 ██  ██        ██     ██   ██ ████   ██ ██   ██ ██   ██ ████   ██    ██    ██                                                             
 ██  ██        ██     ███████ ██ ██  ██ ██   ██ ███████ ██ ██  ██    ██    █████                                                          
 ██  ██        ██     ██   ██ ██  ██ ██ ██   ██ ██   ██ ██  ██ ██    ██    ██                                                             
- ██  ██████  ██      ██   ██ ██   ████ ██████  ██   ██ ██   ████    ██    ███████
+ ██  ██████  ██      ██   ██ ██   ████ ██████  ██   ████    ██    ███████
 
 Donate: 0x0004230c13c3890F34Bb9C9683b91f539E809000
 EOF
@@ -112,6 +112,86 @@ EOF
     echo -e "${GREEN}Нода успешно установлена и запущена!${NC}"
 }
 
+function update_node {
+    echo -e "${BLUE}Обновляем ноду Hemi...${NC}"
+
+        # Проверка существования сервиса
+    if systemctl list-units --type=service | grep -q "hemid.service"; then
+        sudo systemctl stop hemid
+        sudo systemctl disable hemid
+        sudo rm /etc/systemd/system/hemid.service
+        sudo systemctl daemon-reload
+    else
+        echo -e "${BLUE}Сервис hemid.service не найден, продолжаем обновление.${NC}"
+    fi
+    sleep 1
+
+    # Удаление папки с бинарниками, содержащими "hemi" в названии
+    echo -e "${BLUE}Удаляем старые файлы ноды...${NC}"
+    rm -rf *hemi*
+    
+    # Обновляем и устанавливаем необходимые пакеты
+    sudo apt update && sudo apt upgrade -y
+
+    # Установка бинарника
+    echo -e "${BLUE}Загружаем бинарник Hemi...${NC}"
+    curl -L -O https://github.com/hemilabs/heminetwork/releases/download/v0.6.0/heminetwork_v0.6.0_linux_amd64.tar.gz
+
+    # Создание директории и извлечение бинарника
+    mkdir -p hemi
+    tar --strip-components=1 -xzvf heminetwork_v0.6.0_linux_amd64.tar.gz -C hemi
+    cd hemi
+
+    # Запрос приватного ключа и комиссии
+    echo -e "${YELLOW}Введите ваш приватный ключ от кошелька:${NC} "
+    read PRIV_KEY
+    echo -e "${YELLOW}Укажите желаемый размер комиссии (минимум 50):${NC} "
+    read FEE
+
+    # Создание файла popmd.env
+    echo "POPM_BTC_PRIVKEY=$PRIV_KEY" > popmd.env
+    echo "POPM_STATIC_FEE=$FEE" >> popmd.env
+    echo "POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public" >> popmd.env
+    sleep 1
+
+    # Определяем имя текущего пользователя и его домашнюю директорию
+    USERNAME=$(whoami)
+
+    if [ "$USERNAME" == "root" ]; then
+        HOME_DIR="/root"
+    else
+        HOME_DIR="/home/$USERNAME"
+    fi
+
+    # Создаем или обновляем файл сервиса с использованием определенного имени пользователя и домашней директории
+    cat <<EOT | sudo tee /etc/systemd/system/hemid.service > /dev/null
+[Unit]
+Description=PopMD Service
+After=network.target
+
+[Service]
+User=$USERNAME
+EnvironmentFile=$HOME_DIR/hemi/popmd.env
+ExecStart=$HOME_DIR/hemi/popmd
+WorkingDirectory=$HOME_DIR/hemi/
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+    # Обновление сервисов и включение hemi
+    sudo systemctl daemon-reload
+    sudo systemctl enable hemid
+    sleep 1
+
+    # Запуск ноды
+    sudo systemctl start hemid
+
+    # Заключительный вывод
+    echo -e "${GREEN}Нода обновлена и запущена!${NC}"
+}
+
 function restart_node {
     echo -e "${BLUE}Перезапускаем ноду...${NC}"
     sudo systemctl restart hemid
@@ -164,28 +244,30 @@ function main_menu {
     while true; do
         echo -e "${YELLOW}Выберите действие:${NC}"
         echo -e "${CYAN}1. Установка ноды${NC}"
-        echo -e "${CYAN}2. Рестарт ноды${NC}"
-        echo -e "${CYAN}3. Изменить порт${NC}"
-        echo -e "${CYAN}4. Изменить комиссию${NC}"
-        echo -e "${CYAN}5. Просмотр логов${NC}"
-        echo -e "${CYAN}6. Удаление ноды${NC}"
-        echo -e "${CYAN}7. Импортировать кошелек${NC}"
-        echo -e "${CYAN}8. Перейти к другим нодам${NC}"
-        echo -e "${CYAN}9. Выход${NC}"
+        echo -e "${CYAN}2. Обновление ноды${NC}"
+        echo -e "${CYAN}3. Рестарт ноды${NC}"
+        echo -e "${CYAN}4. Изменить порт${NC}"
+        echo -e "${CYAN}5. Изменить комиссию${NC}"
+        echo -e "${CYAN}6. Просмотр логов${NC}"
+        echo -e "${CYAN}7. Удаление ноды${NC}"
+        echo -e "${CYAN}8. Импортировать кошелек${NC}"
+        echo -e "${CYAN}9. Перейти к другим нодам${NC}"
+        echo -e "${CYAN}10. Выход${NC}"
        
         echo -e "${YELLOW}Введите номер действия:${NC} "
         read choice
         case $choice in
             1) install_node ;;
-            2) restart_node ;;
-            3) change_port ;;
-            4) change_fee ;;
-            5) view_logs ;;
-            6) remove_node ;;
-            7) import_wallet ;;
+            2) update_node ;;
+            3) restart_node ;;
+            4) change_port ;;
+            5) change_fee ;;
+            6) view_logs ;;
+            7) remove_node ;;
             8) wget -q -O Ultimative_Node_Installer.sh https://raw.githubusercontent.com/ksydoruk1508/Ultimative_Node_Installer/main/Ultimative_Node_Installer.sh && sudo chmod +x Ultimative_Node_Installer.sh && ./Ultimative_Node_Installer.sh
             ;;
             9) break ;;
+            10) exit 0 ;;
             *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
         esac
     done
