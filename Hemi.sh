@@ -192,6 +192,19 @@ EOT
     echo -e "${GREEN}Нода обновлена и запущена!${NC}"
 }
 
+function check_version {
+    echo -e "${BLUE}Проверяем текущую версию ноды...${NC}"
+    if [[ -f /root/heminetwork_v0.5.0_linux_amd64/popmd ]]; then
+        CURRENT_VERSION=$(/root/heminetwork_v0.5.0_linux_amd64/popmd --version)
+        echo -e "${GREEN}Текущая версия ноды (v0.5.0): $CURRENT_VERSION${NC}"
+    elif [[ -f /root/hemi/popmd ]]; then
+        CURRENT_VERSION=$(/root/hemi/popmd --version)
+        echo -e "${GREEN}Текущая версия ноды (v0.6.0): $CURRENT_VERSION${NC}"
+    else
+        echo -e "${RED}Не удалось найти бинарный файл для проверки версии.${NC}"
+    fi
+}
+
 function restart_node {
     echo -e "${BLUE}Перезапускаем ноду...${NC}"
     sudo systemctl restart hemid
@@ -251,8 +264,9 @@ function main_menu {
         echo -e "${CYAN}6. Просмотр логов${NC}"
         echo -e "${CYAN}7. Удаление ноды${NC}"
         echo -e "${CYAN}8. Импортировать кошелек${NC}"
-        echo -e "${CYAN}9. Перейти к другим нодам${NC}"
-        echo -e "${CYAN}10. Выход${NC}"
+        echo -e "${CYAN}9. Проверить версию ноды${NC}"
+        echo -e "${CYAN}10. Перейти к другим нодам${NC}"
+        echo -e "${CYAN}11. Выход${NC}"
        
         echo -e "${YELLOW}Введите номер действия:${NC} "
         read choice
@@ -264,10 +278,11 @@ function main_menu {
             5) change_fee ;;
             6) view_logs ;;
             7) remove_node ;;
-            8) wget -q -O Ultimative_Node_Installer.sh https://raw.githubusercontent.com/ksydoruk1508/Ultimative_Node_Installer/main/Ultimative_Node_Installer.sh && sudo chmod +x Ultimative_Node_Installer.sh && ./Ultimative_Node_Installer.sh
+            8) import_wallet ;;
+            9) check_version ;;
+            10) wget -q -O Ultimative_Node_Installer.sh https://raw.githubusercontent.com/ksydoruk1508/Ultimative_Node_Installer/main/Ultimative_Node_Installer.sh && sudo chmod +x Ultimative_Node_Installer.sh && ./Ultimative_Node_Installer.sh
             ;;
-            9) break ;;
-            10) exit 0 ;;
+            11) exit 0 ;;
             *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
         esac
     done
