@@ -265,23 +265,34 @@ API_URL="https://mempool.space/testnet/api/v1/fees/mempool-blocks"
 
 function fetch_and_update_fee {
     echo -e "${BLUE}Получаем актуальную комиссию...${NC}"
-    fee=$(curl -s "$API_URL" | jq '.[0].medianFee')
-    
+    fee=$(curl -s "$API_URL" | jq '.[0].medianFee' | awk '{printf "%.0f", $1}')
     if [[ $? -eq 0 && ! -z "$fee" ]]; then
         echo -e "${GREEN}Текущая медианная комиссия: ${fee} сат/байт${NC}"
-        # Обновляем POPM_STATIC_FEE в файле
-        sudo sed -i "s/POPM_STATIC_FEE=.*/POPM_STATIC_FEE=$fee/" $CONFIG_FILE
-        sudo systemctl restart hemid
-        echo -e "${GREEN}Комиссия обновлена до $fee сат/байт и сервис перезапущен.${NC}"
+        if [[ -f "$CONFIG_FILE" ]]; then
+            sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" "$CONFIG_FILE"
+            sudo systemctl daemon-reload
+            sudo systemctl restart hemid
+            echo -e "${GREEN}Комиссия обновлена до ${fee} сат/байт и сервис перезапущен.${NC}"
+        else
+            echo -e "${RED}Файл настроек $CONFIG_FILE не найден.${NC}"
+        fi
     else
         echo -e "${RED}Ошибка получения комиссии, проверьте подключение к сети.${NC}"
     fi
 }
 
 function auto_adjust_gas {
-    echo -e "${YELLOW}Запускаем автоматическую корректировку газа...${NC}"
+    echo -e "${YELLOW}Введите максимальную допустимую комиссию (сат/байт): ${NC}"
+    read max_fee
+    echo -e "${GREEN}Максимальная комиссия установлена на ${max_fee} сат/байт.${NC}"
+
     while true; do
-        fetch_and_update_fee
+        fee=$(curl -s "$API_URL" | jq '.[0].medianFee' | awk '{printf "%.0f", $1}')
+        if (( fee > max_fee )); then
+            echo -e "${RED}Комиссия ${fee} сат/байт превышает установленный максимум. Ждем снижения...${NC}"
+        else
+            fetch_and_update_fee
+        fi
         echo -e "${CYAN}Ожидание 1 час до следующей проверки...${NC}"
         sleep 3600
     done
