@@ -286,7 +286,7 @@ function auto_adjust_gas {
     echo -e "${YELLOW}Введите максимальную допустимую комиссию (сат/байт): ${NC}"
     read max_fee
 
-    # Проверяем, что введённое значение является числом
+    # Проверка, что max_fee является числом
     if ! [[ "$max_fee" =~ ^[0-9]+$ ]]; then
         echo -e "${RED}Ошибка: Максимальная комиссия должна быть числом.${NC}"
         return
@@ -294,7 +294,7 @@ function auto_adjust_gas {
 
     echo -e "${GREEN}Максимальная комиссия установлена на ${max_fee} сат/байт.${NC}"
 
-    # Создаём временный файл со скриптом для выполнения
+    # Создаём временный файл со скриптом
     TEMP_SCRIPT=$(mktemp)
     cat << EOF > $TEMP_SCRIPT
 #!/bin/bash
@@ -303,6 +303,7 @@ CONFIG_FILE="$CONFIG_FILE"
 MAX_FEE=$max_fee
 while true; do
     fee=\$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
+    echo "Полученная комиссия: \$fee, Максимальная комиссия: \$MAX_FEE" >> nohup_gas.log
     if [[ \$? -ne 0 || -z "\$fee" ]]; then
         echo "Ошибка получения комиссии. Пропуск проверки..." >> nohup_gas.log
         sleep 3600
@@ -325,7 +326,7 @@ EOF
     nohup $TEMP_SCRIPT > nohup_gas.log 2>&1 &
     echo -e "${GREEN}Фоновая корректировка газа запущена через nohup. Логи пишутся в файл nohup_gas.log.${NC}"
 
-    # Удаляем временный файл, когда процесс завершится
+    # Удаляем временный файл при завершении работы
     trap "rm -f $TEMP_SCRIPT" EXIT
     sleep 2
 }
