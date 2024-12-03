@@ -221,11 +221,15 @@ function change_port {
 function change_fee {
     echo -e "${YELLOW}Введите новую комиссию: ${NC}"
     read fee
-    sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" /etc/environment
-    source /etc/environment
-    sudo systemctl daemon-reload
-    sudo systemctl restart hemid
-    echo -e "${GREEN}Комиссия изменена и нода перезапущена.${NC}"
+
+    if [[ -f "/root/hemi/popmd.env" ]]; then
+        sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" /root/hemi/popmd.env
+        sudo systemctl daemon-reload
+        sudo systemctl restart hemid
+        echo -e "${GREEN}Комиссия изменена на ${fee} сат/байт и нода перезапущена.${NC}"
+    else
+        echo -e "${RED}Файл настроек /root/hemi/popmd.env не найден. Проверьте путь и попробуйте снова.${NC}"
+    fi
 }
 
 function view_logs {
@@ -253,6 +257,9 @@ function import_wallet {
     echo -e "${GREEN}Кошелек успешно импортирован и нода перезапущена.${NC}"
 }
 
+# Путь к файлу с настройками
+CONFIG_FILE="/root/hemi/popmd.env"
+
 # URL API для получения комиссии
 API_URL="https://mempool.space/testnet/api/v1/fees/mempool-blocks"
 
@@ -262,10 +269,10 @@ function fetch_and_update_fee {
     
     if [[ $? -eq 0 && ! -z "$fee" ]]; then
         echo -e "${GREEN}Текущая медианная комиссия: ${fee} сат/байт${NC}"
-        sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" /etc/environment
-        source /etc/environment
+        # Обновляем POPM_STATIC_FEE в файле
+        sudo sed -i "s/POPM_STATIC_FEE=.*/POPM_STATIC_FEE=$fee/" $CONFIG_FILE
         sudo systemctl restart hemid
-        echo -e "${GREEN}Комиссия обновлена и сервис перезапущен.${NC}"
+        echo -e "${GREEN}Комиссия обновлена до $fee сат/байт и сервис перезапущен.${NC}"
     else
         echo -e "${RED}Ошибка получения комиссии, проверьте подключение к сети.${NC}"
     fi
@@ -282,12 +289,15 @@ function auto_adjust_gas {
 
 function view_current_fee {
     echo -e "${BLUE}Проверяем комиссию, установленную в ноде...${NC}"
-    fee=$(grep -oP 'POPM_STATIC_FEE=\K[0-9]+' /etc/environment)
-    
-    if [[ ! -z "$fee" ]]; then
-        echo -e "${GREEN}Текущая установленная комиссия: ${fee} сат/байт${NC}"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        fee=$(grep -oP 'POPM_STATIC_FEE=\K[0-9]+' "$CONFIG_FILE")
+        if [[ ! -z "$fee" ]]; then
+            echo -e "${GREEN}Текущая установленная комиссия: ${fee} сат/байт${NC}"
+        else
+            echo -e "${RED}Не удалось найти переменную POPM_STATIC_FEE в файле $CONFIG_FILE.${NC}"
+        fi
     else
-        echo -e "${RED}Не удалось найти установленную комиссию. Проверьте файл /etc/environment.${NC}"
+        echo -e "${RED}Файл настроек $CONFIG_FILE не найден.${NC}"
     fi
 }
 
