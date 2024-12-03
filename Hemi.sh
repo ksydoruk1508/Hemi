@@ -286,29 +286,36 @@ function auto_adjust_gas {
     read max_fee
     echo -e "${GREEN}Максимальная комиссия установлена на ${max_fee} сат/байт.${NC}"
 
-    # Запускаем функцию через nohup
-    nohup bash -c "
-    while true; do
-        fee=\$(curl -sSL \"https://mempool.space/testnet/api/v1/fees/recommended\" | jq '.fastestFee')
-        if [[ \$? -ne 0 || -z \"\$fee\" ]]; then
-            echo \"Ошибка получения комиссии. Пропуск проверки...\" >> nohup_gas.log
-            sleep 3600
-            continue
-        fi
-
-        if (( fee > max_fee )); then
-            echo \"Комиссия \$fee сат/байт превышает установленный максимум. Ждем снижения...\" >> nohup_gas.log
-        else
-            $(declare -f fetch_and_update_fee) # Интеграция функции
-            fetch_and_update_fee
-        fi
-        echo \"Ожидание 1 час до следующей проверки...\" >> nohup_gas.log
+    # Создаём временный файл со скриптом для выполнения
+    TEMP_SCRIPT=$(mktemp)
+    cat << EOF > $TEMP_SCRIPT
+#!/bin/bash
+$(declare -f fetch_and_update_fee)
+while true; do
+    fee=\$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
+    if [[ \$? -ne 0 || -z "\$fee" ]]; then
+        echo "Ошибка получения комиссии. Пропуск проверки..." >> nohup_gas.log
         sleep 3600
-    done
-    " > nohup_gas.log 2>&1 &
+        continue
+    fi
 
-    # После запуска возвращаемся в меню
+    if (( fee > max_fee )); then
+        echo "Комиссия \$fee сат/байт превышает установленный максимум. Ждем снижения..." >> nohup_gas.log
+    else
+        fetch_and_update_fee
+    fi
+    echo "Ожидание 1 час до следующей проверки..." >> nohup_gas.log
+    sleep 3600
+done
+EOF
+
+    # Запускаем скрипт через nohup
+    chmod +x $TEMP_SCRIPT
+    nohup $TEMP_SCRIPT > nohup_gas.log 2>&1 &
     echo -e "${GREEN}Фоновая корректировка газа запущена через nohup. Логи пишутся в файл nohup_gas.log.${NC}"
+
+    # Удаляем временный файл, когда процесс завершится
+    trap "rm -f $TEMP_SCRIPT" EXIT
     sleep 2
 }
 
