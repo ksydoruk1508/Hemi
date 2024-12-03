@@ -264,20 +264,21 @@ CONFIG_FILE="/root/hemi/popmd.env"
 API_URL="https://mempool.space/testnet/api/v1/fees/mempool-blocks"
 
 function fetch_and_update_fee {
-    echo -e "${BLUE}Получаем значение fastestFee из API...${NC}"
-    fee=$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
-    if [[ $? -eq 0 && ! -z "$fee" ]]; then
-        echo -e "${GREEN}Текущая комиссия fastestFee: ${fee} сат/байт${NC}"
-        if [[ -f "$CONFIG_FILE" ]]; then
-            sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" "$CONFIG_FILE"
-            sudo systemctl daemon-reload
-            sudo systemctl restart hemid
-            echo -e "${GREEN}Комиссия обновлена до ${fee} сат/байт и сервис перезапущен.${NC}"
-        else
-            echo -e "${RED}Файл настроек $CONFIG_FILE не найден.${NC}"
-        fi
+    local fee=$1
+    echo "Получено значение газа: ${fee}" >> nohup_gas.log
+
+    if [[ -z "$fee" || ! "$fee" =~ ^[0-9]+$ ]]; then
+        echo "Неверное значение газа: ${fee}. Операция отменена." >> nohup_gas.log
+        return
+    fi
+
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" "$CONFIG_FILE"
+        sudo systemctl daemon-reload
+        sudo systemctl restart hemid
+        echo "Газ обновлен до ${fee} сат/байт и нода перезапущена." >> nohup_gas.log
     else
-        echo -e "${RED}Ошибка получения комиссии, проверьте подключение к сети.${NC}"
+        echo "Файл настроек $CONFIG_FILE не найден." >> nohup_gas.log
     fi
 }
 
@@ -291,6 +292,7 @@ function auto_adjust_gas {
     cat << EOF > $TEMP_SCRIPT
 #!/bin/bash
 $(declare -f fetch_and_update_fee)
+CONFIG_FILE="$CONFIG_FILE"
 while true; do
     fee=\$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
     if [[ \$? -ne 0 || -z "\$fee" ]]; then
@@ -302,7 +304,8 @@ while true; do
     if (( fee > max_fee )); then
         echo "Комиссия \$fee сат/байт превышает установленный максимум. Ждем снижения..." >> nohup_gas.log
     else
-        fetch_and_update_fee
+        echo "Обновляем газ до \$fee сат/байт..." >> nohup_gas.log
+        fetch_and_update_fee "\$fee"
     fi
     echo "Ожидание 1 час до следующей проверки..." >> nohup_gas.log
     sleep 3600
