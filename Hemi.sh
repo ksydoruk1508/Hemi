@@ -253,6 +253,44 @@ function import_wallet {
     echo -e "${GREEN}Кошелек успешно импортирован и нода перезапущена.${NC}"
 }
 
+# URL API для получения комиссии
+API_URL="https://mempool.space/testnet/api/v1/fees/mempool-blocks"
+
+function fetch_and_update_fee {
+    echo -e "${BLUE}Получаем актуальную комиссию...${NC}"
+    fee=$(curl -s "$API_URL" | jq '.[0].medianFee')
+    
+    if [[ $? -eq 0 && ! -z "$fee" ]]; then
+        echo -e "${GREEN}Текущая медианная комиссия: ${fee} сат/байт${NC}"
+        sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" /etc/environment
+        source /etc/environment
+        sudo systemctl restart hemid
+        echo -e "${GREEN}Комиссия обновлена и сервис перезапущен.${NC}"
+    else
+        echo -e "${RED}Ошибка получения комиссии, проверьте подключение к сети.${NC}"
+    fi
+}
+
+function auto_adjust_gas {
+    echo -e "${YELLOW}Запускаем автоматическую корректировку газа...${NC}"
+    while true; do
+        fetch_and_update_fee
+        echo -e "${CYAN}Ожидание 1 час до следующей проверки...${NC}"
+        sleep 3600
+    done
+}
+
+function view_current_fee {
+    echo -e "${BLUE}Проверяем комиссию, установленную в ноде...${NC}"
+    fee=$(grep -oP 'POPM_STATIC_FEE=\K[0-9]+' /etc/environment)
+    
+    if [[ ! -z "$fee" ]]; then
+        echo -e "${GREEN}Текущая установленная комиссия: ${fee} сат/байт${NC}"
+    else
+        echo -e "${RED}Не удалось найти установленную комиссию. Проверьте файл /etc/environment.${NC}"
+    fi
+}
+
 function main_menu {
     while true; do
         echo -e "${YELLOW}Выберите действие:${NC}"
@@ -266,7 +304,9 @@ function main_menu {
         echo -e "${CYAN}8. Импортировать кошелек${NC}"
         echo -e "${CYAN}9. Проверить версию ноды${NC}"
         echo -e "${CYAN}10. Перейти к другим нодам${NC}"
-        echo -e "${CYAN}11. Выход${NC}"
+        echo -e "${CYAN}11. Автоматическая корректировка газа${NC}"
+        echo -e "${CYAN}12. Просмотр установленной комиссии${NC}"
+        echo -e "${CYAN}13. Выход${NC}"
        
         echo -e "${YELLOW}Введите номер действия:${NC} "
         read choice
@@ -280,9 +320,10 @@ function main_menu {
             7) remove_node ;;
             8) import_wallet ;;
             9) check_version ;;
-            10) wget -q -O Ultimative_Node_Installer.sh https://raw.githubusercontent.com/ksydoruk1508/Ultimative_Node_Installer/main/Ultimative_Node_Installer.sh && sudo chmod +x Ultimative_Node_Installer.sh && ./Ultimative_Node_Installer.sh
-            ;;
-            11) exit 0 ;;
+            10) wget -q -O Ultimative_Node_Installer.sh https://raw.githubusercontent.com/ksydoruk1508/Ultimative_Node_Installer/main/Ultimative_Node_Installer.sh && sudo chmod +x Ultimative_Node_Installer.sh && ./Ultimative_Node_Installer.sh ;;
+            11) auto_adjust_gas ;;
+            12) view_current_fee ;;
+            13) exit 0 ;;
             *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
         esac
     done
