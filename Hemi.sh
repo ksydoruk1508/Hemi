@@ -264,10 +264,10 @@ CONFIG_FILE="/root/hemi/popmd.env"
 API_URL="https://mempool.space/testnet/api/v1/fees/mempool-blocks"
 
 function fetch_and_update_fee {
-    echo -e "${BLUE}Получаем актуальную комиссию...${NC}"
-    fee=$(curl -s "$API_URL" | jq '.[0].medianFee' | awk '{printf "%.0f", $1}')
+    echo -e "${BLUE}Получаем значение fastestFee из API...${NC}"
+    fee=$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
     if [[ $? -eq 0 && ! -z "$fee" ]]; then
-        echo -e "${GREEN}Текущая медианная комиссия: ${fee} сат/байт${NC}"
+        echo -e "${GREEN}Текущая комиссия fastestFee: ${fee} сат/байт${NC}"
         if [[ -f "$CONFIG_FILE" ]]; then
             sudo sed -i "s/POPM_STATIC_FEE=[0-9]*/POPM_STATIC_FEE=$fee/" "$CONFIG_FILE"
             sudo systemctl daemon-reload
@@ -287,7 +287,13 @@ function auto_adjust_gas {
     echo -e "${GREEN}Максимальная комиссия установлена на ${max_fee} сат/байт.${NC}"
 
     while true; do
-        fee=$(curl -s "$API_URL" | jq '.[0].medianFee' | awk '{printf "%.0f", $1}')
+        fee=$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
+        if [[ $? -ne 0 || -z "$fee" ]]; then
+            echo -e "${RED}Ошибка получения комиссии. Пропуск проверки...${NC}"
+            sleep 3600
+            continue
+        fi
+
         if (( fee > max_fee )); then
             echo -e "${RED}Комиссия ${fee} сат/байт превышает установленный максимум. Ждем снижения...${NC}"
         else
