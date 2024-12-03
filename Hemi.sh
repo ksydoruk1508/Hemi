@@ -285,6 +285,13 @@ function fetch_and_update_fee {
 function auto_adjust_gas {
     echo -e "${YELLOW}Введите максимальную допустимую комиссию (сат/байт): ${NC}"
     read max_fee
+
+    # Проверяем, что введённое значение является числом
+    if ! [[ "$max_fee" =~ ^[0-9]+$ ]]; then
+        echo -e "${RED}Ошибка: Максимальная комиссия должна быть числом.${NC}"
+        return
+    fi
+
     echo -e "${GREEN}Максимальная комиссия установлена на ${max_fee} сат/байт.${NC}"
 
     # Создаём временный файл со скриптом для выполнения
@@ -293,6 +300,7 @@ function auto_adjust_gas {
 #!/bin/bash
 $(declare -f fetch_and_update_fee)
 CONFIG_FILE="$CONFIG_FILE"
+MAX_FEE=$max_fee
 while true; do
     fee=\$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
     if [[ \$? -ne 0 || -z "\$fee" ]]; then
@@ -301,8 +309,8 @@ while true; do
         continue
     fi
 
-    if (( fee > max_fee )); then
-        echo "Комиссия \$fee сат/байт превышает установленный максимум. Ждем снижения..." >> nohup_gas.log
+    if (( fee > MAX_FEE )); then
+        echo "Комиссия \$fee сат/байт превышает установленный максимум (\$MAX_FEE). Ждем снижения..." >> nohup_gas.log
     else
         echo "Обновляем газ до \$fee сат/байт..." >> nohup_gas.log
         fetch_and_update_fee "\$fee"
