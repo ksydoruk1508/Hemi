@@ -286,22 +286,30 @@ function auto_adjust_gas {
     read max_fee
     echo -e "${GREEN}Максимальная комиссия установлена на ${max_fee} сат/байт.${NC}"
 
+    # Запускаем функцию через nohup
+    nohup bash -c "
     while true; do
-        fee=$(curl -sSL "https://mempool.space/testnet/api/v1/fees/recommended" | jq '.fastestFee')
-        if [[ $? -ne 0 || -z "$fee" ]]; then
-            echo -e "${RED}Ошибка получения комиссии. Пропуск проверки...${NC}"
+        fee=\$(curl -sSL \"https://mempool.space/testnet/api/v1/fees/recommended\" | jq '.fastestFee')
+        if [[ \$? -ne 0 || -z \"\$fee\" ]]; then
+            echo \"Ошибка получения комиссии. Пропуск проверки...\" >> nohup_gas.log
             sleep 3600
             continue
         fi
 
         if (( fee > max_fee )); then
-            echo -e "${RED}Комиссия ${fee} сат/байт превышает установленный максимум. Ждем снижения...${NC}"
+            echo \"Комиссия \$fee сат/байт превышает установленный максимум. Ждем снижения...\" >> nohup_gas.log
         else
+            $(declare -f fetch_and_update_fee) # Интеграция функции
             fetch_and_update_fee
         fi
-        echo -e "${CYAN}Ожидание 1 час до следующей проверки...${NC}"
+        echo \"Ожидание 1 час до следующей проверки...\" >> nohup_gas.log
         sleep 3600
     done
+    " > nohup_gas.log 2>&1 &
+
+    # После запуска возвращаемся в меню
+    echo -e "${GREEN}Фоновая корректировка газа запущена через nohup. Логи пишутся в файл nohup_gas.log.${NC}"
+    sleep 2
 }
 
 function view_current_fee {
