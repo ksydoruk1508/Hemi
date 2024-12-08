@@ -200,7 +200,8 @@ function check_version {
         if [[ -n "$CURRENT_VERSION" ]]; then
             echo -e "${GREEN}Текущая версия ноды: $CURRENT_VERSION${NC}"
         else
-            echo -e "${RED}Не удалось получить версию из бинарного файла. Полный вывод:${NC}\n$FULL_OUTPUT"
+            echo -e "${RED}Не удалось получить версию из бинарного файла. Полный вывод:${NC}
+$FULL_OUTPUT"
         fi
     elif [[ -f /root/heminetwork_v0.5.0_linux_amd64/popmd ]]; then
         FULL_OUTPUT=$(/root/heminetwork_v0.5.0_linux_amd64/popmd --version 2>/dev/null)
@@ -208,7 +209,8 @@ function check_version {
         if [[ -n "$CURRENT_VERSION" ]]; then
             echo -e "${GREEN}Текущая версия ноды (v0.5.0): $CURRENT_VERSION${NC}"
         else
-            echo -e "${RED}Не удалось получить версию из бинарного файла. Полный вывод:${NC}\n$FULL_OUTPUT"
+            echo -e "${RED}Не удалось получить версию из бинарного файла. Полный вывод:${NC}
+$FULL_OUTPUT"
         fi
     else
         echo -e "${RED}Не удалось найти бинарный файл для проверки версии.${NC}"
