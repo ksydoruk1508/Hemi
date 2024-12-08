@@ -135,11 +135,11 @@ function update_node {
 
     # Установка бинарника
     echo -e "${BLUE}Загружаем бинарник Hemi...${NC}"
-    curl -L -O https://github.com/hemilabs/heminetwork/releases/download/v0.7.0/heminetwork_v0.7.0_linux_amd64.tar.gz
+    curl -L -O https://github.com/hemilabs/heminetwork/releases/download/v0.8.0/heminetwork_v0.8.0_linux_amd64.tar.gz
 
     # Создание директории и извлечение бинарника
     mkdir -p hemi
-    tar --strip-components=1 -xzvf heminetwork_v0.7.0_linux_amd64.tar.gz -C hemi
+    tar --strip-components=1 -xzvf heminetwork_v0.8.0_linux_amd64.tar.gz -C hemi
     cd hemi
 
     # Запрос приватного ключа и комиссии
@@ -189,19 +189,20 @@ EOT
     sudo systemctl start hemid
 
     # Заключительный вывод
-    echo -e "${GREEN}Нода обновлена и запущена!${NC}"
+    echo -e "${GREEN}Нода успешно обновлена до версии 0.8.0!${NC}"
 }
 
 function check_version {
     echo -e "${BLUE}Проверяем текущую версию ноды...${NC}"
-    if [[ -f /root/heminetwork_v0.5.0_linux_amd64/popmd ]]; then
-        CURRENT_VERSION=$(/root/heminetwork_v0.5.0_linux_amd64/popmd --version)
-        echo -e "${GREEN}Текущая версия ноды (v0.5.0): $CURRENT_VERSION${NC}"
-    elif [[ -f /root/hemi/popmd ]]; then
-        CURRENT_VERSION=$(/root/hemi/popmd --version)
-        echo -e "${GREEN}Текущая версия ноды (v0.6.0): $CURRENT_VERSION${NC}"
+    if [[ -f /root/hemi/popmd ]]; then
+        CURRENT_VERSION=$(/root/hemi/popmd --version 2>/dev/null | head -n 1)
+        if [[ -n "$CURRENT_VERSION" ]]; then
+            echo -e "${GREEN}Текущая версия ноды: $CURRENT_VERSION${NC}"
+        else
+            echo -e "${RED}Не удалось получить версию из бинарного файла.${NC}"
+        fi
     else
-        echo -e "${RED}Не удалось найти бинарный файл для проверки версии.${NC}"
+        echo -e "${RED}Не найден бинарный файл /root/hemi/popmd.${NC}"
     fi
 }
 
