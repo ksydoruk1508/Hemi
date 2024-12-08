@@ -350,7 +350,7 @@ function main_menu {
     while true; do
         echo -e "${YELLOW}Выберите действие:${NC}"
         echo -e "${CYAN}1. Установка ноды${NC}"
-        echo -e "${CYAN}2. Обновление ноды до версии 0.7.0 (29.11.2024)${NC}"
+        echo -e "${CYAN}2. Обновление ноды до версии 0.8.0 (08.12.2024)${NC}"
         echo -e "${CYAN}3. Рестарт ноды${NC}"
         echo -e "${CYAN}4. Изменить порт${NC}"
         echo -e "${CYAN}5. Изменить комиссию${NC}"
