@@ -195,24 +195,32 @@ EOT
 function check_version {
     echo -e "${BLUE}Проверяем текущую версию ноды...${NC}"
     if [[ -f /root/hemi/popmd ]]; then
-        FULL_OUTPUT=$(/root/hemi/popmd --version 2>/dev/null)
-        echo -e "${YELLOW}Полный вывод команды:${NC}
-$FULL_OUTPUT"
-        CURRENT_VERSION=$(echo "$FULL_OUTPUT" | grep -o 'v[0-9]\.[0-9]\.[0-9]\+[^ ]*')
-        if [[ -n "$CURRENT_VERSION" ]]; then
-            echo -e "${GREEN}Текущая версия ноды: $CURRENT_VERSION${NC}"
+        echo -e "${YELLOW}Попытка выполнить команду /root/hemi/popmd --version...${NC}"
+        FULL_OUTPUT=$(/root/hemi/popmd --version 2>&1)
+        if [[ -n "$FULL_OUTPUT" ]]; then
+            echo -e "${YELLOW}Полный вывод команды:${NC}\n$FULL_OUTPUT"
+            CURRENT_VERSION=$(echo "$FULL_OUTPUT" | grep -o 'v[0-9]\.[0-9]\.[0-9]\+[^ ]*')
+            if [[ -n "$CURRENT_VERSION" ]]; then
+                echo -e "${GREEN}Текущая версия ноды: $CURRENT_VERSION${NC}"
+            else
+                echo -e "${RED}Не удалось извлечь версию из вывода. Проверьте полный вывод выше.${NC}"
+            fi
         else
-            echo -e "${RED}Не удалось извлечь версию из вывода. Пожалуйста, проверьте полный вывод выше.${NC}"
+            echo -e "${RED}Команда /root/hemi/popmd --version не вернула никакого результата.${NC}"
         fi
     elif [[ -f /root/heminetwork_v0.5.0_linux_amd64/popmd ]]; then
-        FULL_OUTPUT=$(/root/heminetwork_v0.5.0_linux_amd64/popmd --version 2>/dev/null)
-        echo -e "${YELLOW}Полный вывод команды:${NC}
-$FULL_OUTPUT"
-        CURRENT_VERSION=$(echo "$FULL_OUTPUT" | grep -o 'v[0-9]\.[0-9]\.[0-9]\+[^ ]*')
-        if [[ -n "$CURRENT_VERSION" ]]; then
-            echo -e "${GREEN}Текущая версия ноды (v0.5.0): $CURRENT_VERSION${NC}"
+        echo -e "${YELLOW}Попытка выполнить команду /root/heminetwork_v0.5.0_linux_amd64/popmd --version...${NC}"
+        FULL_OUTPUT=$(/root/heminetwork_v0.5.0_linux_amd64/popmd --version 2>&1)
+        if [[ -n "$FULL_OUTPUT" ]]; then
+            echo -e "${YELLOW}Полный вывод команды:${NC}\n$FULL_OUTPUT"
+            CURRENT_VERSION=$(echo "$FULL_OUTPUT" | grep -o 'v[0-9]\.[0-9]\.[0-9]\+[^ ]*')
+            if [[ -n "$CURRENT_VERSION" ]]; then
+                echo -e "${GREEN}Текущая версия ноды (v0.5.0): $CURRENT_VERSION${NC}"
+            else
+                echo -e "${RED}Не удалось извлечь версию из вывода. Проверьте полный вывод выше.${NC}"
+            fi
         else
-            echo -e "${RED}Не удалось извлечь версию из вывода. Пожалуйста, проверьте полный вывод выше.${NC}"
+            echo -e "${RED}Команда /root/heminetwork_v0.5.0_linux_amd64/popmd --version не вернула никакого результата.${NC}"
         fi
     else
         echo -e "${RED}Не удалось найти бинарный файл для проверки версии.${NC}"
