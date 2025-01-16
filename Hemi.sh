@@ -189,7 +189,7 @@ EOT
     sudo systemctl start hemid
 
     # Заключительный вывод
-    echo -e "${GREEN}Нода успешно обновлена до версии 0.8.0!${NC}"
+    echo -e "${GREEN}Нода успешно обновлена до версии 0.11.0!${NC}"
 }
 
 function check_version {
@@ -199,7 +199,7 @@ function check_version {
         FULL_OUTPUT=$(/root/hemi/popmd --version 2>&1)
         if [[ -n "$FULL_OUTPUT" ]]; then
             echo -e "${YELLOW}Полный вывод команды:${NC}\n$FULL_OUTPUT"
-            CURRENT_VERSION=$(echo "$FULL_OUTPUT" | grep -o 'v[0-9]\.[0-9]\.[0-9]\+[^ ]*')
+            CURRENT_VERSION=$(echo "$FULL_OUTPUT" | grep -o 'v[0-20]\.[0-20]\.[0-20]\+[^ ]*')
             if [[ -n "$CURRENT_VERSION" ]]; then
                 echo -e "${GREEN}Текущая версия ноды: $CURRENT_VERSION${NC}"
             else
