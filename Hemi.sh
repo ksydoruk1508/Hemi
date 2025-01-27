@@ -135,11 +135,11 @@ function update_node {
 
     # Установка бинарника
     echo -e "${BLUE}Загружаем бинарник Hemi...${NC}"
-    curl -L -O https://github.com/hemilabs/heminetwork/releases/download/v0.11.0/heminetwork_v0.11.0_linux_amd64.tar.gz
+    curl -L -O https://github.com/hemilabs/heminetwork/releases/download/v0.11.1/heminetwork_v0.11.1_linux_amd64.tar.gz
 
     # Создание директории и извлечение бинарника
     mkdir -p hemi
-    tar --strip-components=1 -xzvf heminetwork_v0.11.0_linux_amd64.tar.gz -C hemi
+    tar --strip-components=1 -xzvf heminetwork_v0.11.1_linux_amd64.tar.gz -C hemi
     cd hemi
 
     # Запрос приватного ключа и комиссии
@@ -189,7 +189,7 @@ EOT
     sudo systemctl start hemid
 
     # Заключительный вывод
-    echo -e "${GREEN}Нода успешно обновлена до версии 0.11.0!${NC}"
+    echo -e "${GREEN}Нода успешно обновлена до версии 0.11.1!${NC}"
 }
 
 function check_version {
