@@ -135,11 +135,11 @@ function update_node {
 
     # Установка бинарника
     echo -e "${BLUE}Загружаем бинарник Hemi...${NC}"
-    curl -L -O https://github.com/hemilabs/heminetwork/releases/download/v0.11.4/heminetwork_v0.11.4_linux_amd64.tar.gz
+    curl -L -O https://github.com/hemilabs/heminetwork/releases/download/v0.11.5/heminetwork_v0.11.5_linux_amd64.tar.gz
 
     # Создание директории и извлечение бинарника
     mkdir -p hemi
-    tar --strip-components=1 -xzvf heminetwork_v0.11.4_linux_amd64.tar.gz -C hemi
+    tar --strip-components=1 -xzvf heminetwork_v0.11.5_linux_amd64.tar.gz -C hemi
     cd hemi
 
     # Запрос приватного ключа и комиссии
@@ -371,7 +371,7 @@ function main_menu {
     while true; do
         echo -e "${YELLOW}Выберите действие:${NC}"
         echo -e "${CYAN}1. Установка ноды${NC}"
-        echo -e "${CYAN}2. Обновление ноды до версии 0.11.4 (09.02.2025)${NC}"
+        echo -e "${CYAN}2. Обновление ноды до версии 0.11.5 (27.02.2025)${NC}"
         echo -e "${CYAN}3. Рестарт ноды${NC}"
         echo -e "${CYAN}4. Изменить порт${NC}"
         echo -e "${CYAN}5. Изменить комиссию${NC}"
