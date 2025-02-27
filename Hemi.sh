@@ -189,7 +189,7 @@ EOT
     sudo systemctl start hemid
 
     # Заключительный вывод
-    echo -e "${GREEN}Нода успешно обновлена до версии 0.11.4!${NC}"
+    echo -e "${GREEN}Нода успешно обновлена до версии 0.11.5!${NC}"
 }
 
 function check_version {
